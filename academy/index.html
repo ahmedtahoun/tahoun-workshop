@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tahoun AI Academy</title>
+<meta name="description" content="Practical AI for freelancers, business owners and teams. Start with a free course, go deeper in a live cohort, or bring AI into your company.">
+<meta property="og:title" content="Tahoun AI Academy">
+<meta property="og:description" content="Practical AI for freelancers, business owners and teams. Free course, live cohorts, team training.">
+<meta property="og:image" content="https://tahoun.wheretospot.com/academy/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#17322A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2720%27 fill=%27%2317322A%27/%3E%3Ctext x=%2750%27 y=%2768%27 font-size=%2752%27 text-anchor=%27middle%27 fill=%27%23D9B86A%27 font-family=%27Georgia%27%3EAI%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;1,500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="academy.css">
+<script src="social.js" defer></script>
+<script src="play.js" defer></script>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="mark" href="./">Tahoun <span>AI</span> Academy</a>
+  <nav><a class="hide-s" href="#play">Play</a><a class="hide-s" href="#tracks">Tracks</a><a class="hide-s" href="#teams">For teams</a><a class="btn" href="course.html">Start free</a></nav>
+</div></header>
+
+<main>
+<section class="hero"><div class="wrap">
+  <p class="eyebrow">Practical AI · freelancers · business owners · teams</p>
+  <h1>Learn the AI that <em>actually runs</em> in real businesses.</h1>
+  <p class="lead" style="margin-top:20px">Start with a free course. Go deeper in a live cohort. Or bring AI into your team. Taught by someone who builds AI systems that answer customers, track money and run clinics every day.</p>
+  <div class="row"><a class="btn" href="course.html">Start the free course</a><a class="btn alt" href="#tracks">See all tracks</a></div>
+  <div class="facts">
+    <div><b>10</b><span>years in tech</span></div>
+    <div><b>200+</b><span>clients, 500+ projects</span></div>
+    <div><b>4</b><span>countries running my clinic CRM</span></div>
+    <div><b>Anthropic</b><span>Academy certified (Claude 101, Claude Code, AI Fluency for Small Businesses and more)</span></div>
+  </div>
+</div></section>
+
+<section class="alt" id="tracks"><div class="wrap">
+  <p class="eyebrow">Tracks</p>
+  <h2>Pick where you start</h2>
+  <div class="tracks">
+    <article class="track feature">
+      <span class="tag">Free · 45 minutes · certificate of completion</span>
+      <h3>Brief Your AI</h3>
+      <p class="soft">The course version of the free Dahab workshop. Five short lessons, prompts you keep, a final quiz and a certificate for LinkedIn.</p>
+      <ul><li>Where AI answers come from</li><li>The five-line brief that fixes bad answers</li><li>The upgrade ladder for your work</li></ul>
+      <a class="btn gold" href="course.html">Start free</a>
+    </article>
+    <article class="track">
+      <span class="tag">Live cohort · 4 weeks</span>
+      <h3>AI Launchpad</h3>
+      <p class="soft">Small group, live sessions, real assignments. From your first good prompt to your own AI assistant.</p>
+      <p class="price">Founding price $199 <span class="soft" style="font-weight:400">(then $349)</span></p>
+      <button class="btn" type="button" data-lead="launchpad">Join the waitlist</button>
+    </article>
+    <article class="track">
+      <span class="tag">Track · coming next</span>
+      <h3>AI for freelancers</h3>
+      <p class="soft">Find clients, write proposals, deliver AI projects and price them. Templates included.</p>
+      <ul><li>Client outreach that sounds like you</li><li>Scoping and pricing AI work</li><li>Delivering with AI, checking like a pro</li></ul>
+      <button class="btn" type="button" data-lead="freelance">Tell me when it opens</button>
+    </article>
+    <article class="track">
+      <span class="tag">For owners</span>
+      <h3>AI for your business</h3>
+      <p class="soft">Climb the ladder: prompts → templates → assistants → systems on WhatsApp, email and bookings.</p>
+      <p class="price">Clarity Session $197 · Build from $1,500</p>
+      <button class="btn" type="button" data-lead="business">Book a free 20-min call</button>
+    </article>
+  </div>
+</div></section>
+
+
+<section id="demo"><div class="wrap">
+  <p class="eyebrow">Try it · 10 seconds</p>
+  <h2>Watch a brief change the answer</h2>
+  <p class="lead" style="margin-top:14px">Same AI, same minute. The only difference is what you tell it.</p>
+  <div style="margin-top:22px" class="seg" role="group" aria-label="Choose a prompt">
+    <button type="button" id="dWeak" aria-pressed="true">Asking</button>
+    <button type="button" id="dBrief" aria-pressed="false">Briefing</button>
+  </div>
+  <div class="demo">
+    <div><div class="bubble user"><span class="who">You type</span><span id="dIn"></span></div></div>
+    <div><div class="bubble ai"><span class="who">AI answers (example)</span><span id="dOut"></span></div><p class="verdict" id="dVerdict"></p></div>
+  </div>
+</div></section>
+
+<section class="alt" id="play"><div class="wrap">
+  <p class="eyebrow">Play &amp; learn · 2 minutes each</p>
+  <h2>Learn AI by playing</h2>
+  <p class="lead" style="margin-top:14px">Three small games from the course. No sign-up, nothing to install.</p>
+  <div class="seg pl-tabs" role="tablist" aria-label="Choose a game">
+    <button type="button" role="tab" id="pt-doctor" aria-controls="pp-doctor" aria-pressed="true" aria-selected="true">Prompt Doctor</button>
+    <button type="button" role="tab" id="pt-fact" aria-controls="pp-fact" aria-pressed="false" aria-selected="false">Spot the fake</button>
+    <button type="button" role="tab" id="pt-next" aria-controls="pp-next" aria-pressed="false" aria-selected="false">Next word</button>
+  </div>
+  <div class="pl-wrap">
+    <div id="pp-doctor" role="tabpanel" aria-labelledby="pt-doctor" data-play="doctor"></div>
+    <div id="pp-fact" role="tabpanel" aria-labelledby="pt-fact" data-play="fact" hidden></div>
+    <div id="pp-next" role="tabpanel" aria-labelledby="pt-next" data-play="next" hidden></div>
+  </div>
+  <script>
+  (function(){
+    var T=['doctor','fact','next'];
+    function pick(k){ T.forEach(function(t){ var on=t===k; document.getElementById('pt-'+t).setAttribute('aria-pressed',on); document.getElementById('pt-'+t).setAttribute('aria-selected',on); document.getElementById('pp-'+t).hidden=!on; }); }
+    T.forEach(function(t){ document.getElementById('pt-'+t).onclick=function(){ pick(t); }; });
+    var m=(location.hash||'').match(/^#play-(doctor|fact|next)$/); if(m){ pick(m[1]); setTimeout(function(){ document.getElementById('play').scrollIntoView(); },50); }
+  })();
+  </script>
+</div></section>
+
+<section id="calc"><div class="wrap">
+  <p class="eyebrow">Your numbers</p>
+  <h2>How much time could AI give you back?</h2>
+  <p class="lead" style="margin-top:14px">Move the sliders. Each step of the ladder saves more, because more of the work happens without you.</p>
+  <div class="calc">
+    <div class="in">
+      <label for="cH">Hours a week on repetitive work <output id="oH">8</output><input type="range" id="cH" min="1" max="40" value="8"></label>
+      <label for="cT">People doing this work <output id="oT">1</output><input type="range" id="cT" min="1" max="30" value="1"></label>
+      <label for="cV">What an hour of your time is worth
+        <span class="money"><input type="text" id="cV" inputmode="decimal" value="20" aria-label="Value of one hour"><select id="cC" aria-label="Currency"><option>USD</option><option>EUR</option><option>GBP</option><option>EGP</option><option>AED</option></select></span></label>
+      <p class="small">A rough illustration, not a promise. Real savings depend on the tasks, and we work them out together on a free call.</p>
+    </div>
+    <div>
+      <p class="soft" style="font-weight:700">Hours back per year</p>
+      <p class="big" id="cBig">250 hours</p>
+      <p class="soft" id="cBigMoney" style="margin:4px 0 22px"></p>
+      <div class="ladder" id="cLadder"></div>
+      <div class="row" style="margin-top:24px"><button class="btn" type="button" id="cSend">Get my real plan on a free call</button></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="alt" id="live"><div class="wrap">
+  <p class="eyebrow">See it live</p>
+  <h2>Not a chat window. A business that answers itself.</h2>
+  <div class="live">
+    <a href="https://tahoun.wheretospot.com/" target="_blank" rel="noopener"><span class="pulse">Running every day</span><h3>AI sales assistant</h3><p class="soft">Pick a customer message and watch every step it takes: hiding phone numbers, reading live prices, replying in the customer’s language, handing big orders to a person.</p><span class="go">Try the live demo →</span></a>
+    <a href="https://heykipo.com/" target="_blank" rel="noopener"><span class="pulse">Live with paying users</span><h3>Kipo</h3><p class="soft">Text an expense, send a voice note or snap a receipt, in any language. Your Google Sheet fills itself.</p><span class="go">See Kipo →</span></a>
+    <a href="course.html"><span class="pulse">Free</span><h3>Brief Your AI course</h3><p class="soft">Five short lessons, prompts you keep, and a certificate of completion. Start in 20 seconds.</p><span class="go">Start the course →</span></a>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <p class="eyebrow">Proof, not slides</p>
+  <h2>Built and running every day</h2>
+  <div class="proof">
+    <div><b>AI sales assistant</b><span class="soft">Answers shop customers on WhatsApp, Instagram and Messenger, day and night. Hands big orders to a person.</span></div>
+    <div><b>Kipo</b><span class="soft">An AI expense tracker. Text it, send a voice note or a receipt photo, and your sheet fills itself. Live at heykipo.com.</span></div>
+    <div><b>Clinic CRM</b><span class="soft">Live in the UAE, Egypt, Saudi Arabia and Qatar.</span></div>
+    <div><b>Workshop app</b><span class="soft">Check-in, live game, slides and certificates for an in-person AI workshop in Dahab.</span></div>
+  </div>
+  <div class="steps3">
+    <div><p class="n">1</p><h3>Learn</h3><p class="soft">Short lessons on how AI really works and how to brief it.</p></div>
+    <div><p class="n">2</p><h3>Practise</h3><p class="soft">On your own work, with prompts you keep and feedback.</p></div>
+    <div><p class="n">3</p><h3>Build</h3><p class="soft">Templates, assistants, then systems that work without you typing.</p></div>
+  </div>
+</div></section>
+
+<section class="dark" id="teams"><div class="wrap">
+  <p class="eyebrow">For teams and companies</p>
+  <h2>AI training for your team, built on your work</h2>
+  <p class="lead" style="margin-top:16px">A live session or a short programme for up to 10 people, using your real tasks: emails, reports, customer replies, research. Your team leaves with prompts, templates and a plan.</p>
+  <p class="soft" style="margin-top:14px">From $1,500 per team · in person in Egypt and the UAE, or online</p>
+  <div class="row" style="margin-top:26px"><button class="btn gold" type="button" data-lead="corporate">Ask about team training</button></div>
+</div></section>
+
+<section id="contact"><div class="wrap narrow">
+  <p class="eyebrow" id="formEyebrow">Get in touch</p>
+  <h2 id="formTitle">Tell me what you need</h2>
+  <p class="soft" style="margin:12px 0 22px">I reply personally, usually the same day.</p>
+  <form class="form" id="leadForm" novalidate>
+    <div class="field"><span>I’m interested in</span>
+      <div class="pills" role="radiogroup">
+        <label><input type="radio" name="type" value="launchpad"><span>AI Launchpad</span></label>
+        <label><input type="radio" name="type" value="freelance"><span>AI for freelancers</span></label>
+        <label><input type="radio" name="type" value="business"><span>AI for my business</span></label>
+        <label><input type="radio" name="type" value="corporate"><span>Team training</span></label>
+      </div></div>
+    <div class="two">
+      <label class="field"><span>Name</span><input type="text" id="l-name" autocomplete="name" maxlength="60"></label>
+      <label class="field"><span>WhatsApp <span class="hint">(with country code)</span></span><input type="tel" id="l-phone" autocomplete="tel" inputmode="tel" maxlength="24" placeholder="+20 128 888 4313"></label>
+    </div>
+    <label class="field"><span>Email</span><input type="email" id="l-email" autocomplete="email" maxlength="120" placeholder="you@example.com"></label>
+    <div class="two" id="corpFields" hidden>
+      <label class="field"><span>Company</span><input type="text" id="l-company" autocomplete="organization" maxlength="100"></label>
+      <label class="field"><span>Team size</span><input type="text" id="l-team" inputmode="numeric" maxlength="20" placeholder="e.g. 8"></label>
+    </div>
+    <label class="field"><span id="goalLabel">What would you like AI to help with?</span><textarea id="l-goal" maxlength="600"></textarea></label>
+    <div class="trap" aria-hidden="true"><label>Website <input type="text" id="l-website" tabindex="-1" autocomplete="off"></label></div>
+    <p class="err" id="l-err" role="alert" hidden></p>
+    <button class="btn" type="submit" id="l-send">Send</button>
+    <p class="small">WhatsApp or email is enough. Your details are only used to reply to you.</p>
+  </form>
+  <p class="okmsg" id="l-ok" role="status" hidden>Thank you! I’ll get back to you personally, usually the same day.</p>
+  <p class="soft" style="margin:26px 0 10px">Or reach me directly:</p>
+  <div class="socrow" data-social aria-label="Social links"></div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <span>Tahoun AI Academy · Ahmed Tahoun</span>
+  <div class="socrow" data-social aria-label="Social links"></div>
+</div></footer>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var TITLES={launchpad:'Join the AI Launchpad waitlist',freelance:'AI for freelancers: get notified',business:'Book a free 20-minute call',corporate:'Ask about team training'};
+  var GOALS={launchpad:'What do you want to be able to do after 4 weeks?',freelance:'What kind of freelance work do you do?',business:'Which task takes the most time in your business?',corporate:'What should your team get better at with AI?'};
+  function pick(t){
+    var r=document.querySelector('input[name=type][value="'+t+'"]'); if(r) r.checked=true; sync();
+  }
+  function sync(){
+    var r=document.querySelector('input[name=type]:checked'), t=r?r.value:'';
+    $('corpFields').hidden=t!=='corporate';
+    $('formTitle').textContent=TITLES[t]||'Tell me what you need';
+    $('goalLabel').textContent=GOALS[t]||'What would you like AI to help with?';
+  }
+  [].forEach.call(document.querySelectorAll('input[name=type]'),function(r){ r.addEventListener('change',sync); });
+  [].forEach.call(document.querySelectorAll('[data-lead]'),function(b){ b.addEventListener('click',function(){ pick(b.dataset.lead); $('contact').scrollIntoView({behavior:'smooth'}); setTimeout(function(){ $('l-name').focus({preventScroll:true}); },400); }); });
+  // ---- Brief demo (example outputs, written to show the difference) ----
+  var D={weak:{i:'Write a message to get new clients.',o:'Hello! I hope this message finds you well. I am a passionate and dedicated professional with years of experience helping businesses achieve their goals. I would love the opportunity to discuss how my services can add value to your company and help you reach new heights. Please let me know if you would be interested in scheduling a call at your earliest convenience. Looking forward to hearing from you!',v:'Long, generic, could be from anyone. Would you send it?'},
+         brief:{i:'You’re a sales coach for freelancers. I’m a freelance designer in Dahab working with small hotels. A boutique hotel just posted that they need a new menu design for their restaurant. Write my message to them. Under 60 words, friendly, end with one simple question. No flattery.',o:'Hi Sara, I saw you’re refreshing the restaurant menu. I design menus for small hotels on the Red Sea coast, so guests can read them easily in two languages and order more. Happy to share two recent examples. Would a quick look this week help?',v:'Short, specific, sounds like a person. Same AI.'}};
+  function showDemo(k){ $('dWeak').setAttribute('aria-pressed',String(k==='weak')); $('dBrief').setAttribute('aria-pressed',String(k==='brief')); $('dIn').textContent=D[k].i; $('dOut').textContent=D[k].o; $('dVerdict').textContent=D[k].v; $('dVerdict').style.color=k==='weak'?'var(--red)':'var(--ok)'; }
+  $('dWeak').onclick=function(){ showDemo('weak'); }; $('dBrief').onclick=function(){ showDemo('brief'); }; showDemo('weak');
+  var demoTimer=setInterval(function(){ var w=$('dWeak').getAttribute('aria-pressed')==='true'; showDemo(w?'brief':'weak'); },6000);
+  ['dWeak','dBrief'].forEach(function(id){ $(id).addEventListener('click',function(){ clearInterval(demoTimer); }); });
+
+  // ---- Hours calculator (illustrative shares of repetitive work handled at each ladder step) ----
+  var STEPS=[['Prompts','you brief AI per task',0.10],['Templates','saved briefs you reuse',0.25],['Assistants','AI that knows your business',0.45],['Systems','connected, works without you',0.65]];
+  function fmt(n){ return Math.round(n).toLocaleString('en-US'); }
+  function calc(){
+    var h=+$('cH').value, t=+$('cT').value, v=parseFloat(String($('cV').value).replace(',','.'))||0, cur=$('cC').value;
+    $('oH').textContent=h; $('oT').textContent=t;
+    var year=h*t*48, best=year*STEPS[3][2], L=$('cLadder'); L.textContent='';
+    $('cBig').textContent='Up to '+fmt(best)+' hours';
+    $('cBigMoney').textContent=v>0?'Worth about '+fmt(best*v)+' '+cur+' a year, at full system level':'';
+    STEPS.forEach(function(s){ var hrs=year*s[2], row=document.createElement('div'); row.className='lrow';
+      var b=document.createElement('b'); b.textContent=s[0]; var sm=document.createElement('small'); sm.textContent=s[1]; b.appendChild(sm);
+      var bar=document.createElement('div'); bar.className='lbar'; var i=document.createElement('i'); i.style.width=(s[2]/STEPS[3][2]*100)+'%'; bar.appendChild(i);
+      var sp=document.createElement('span'); sp.textContent=fmt(hrs)+' h'+(v>0?' · '+fmt(hrs*v)+' '+cur:'');
+      row.appendChild(b); row.appendChild(bar); row.appendChild(sp); L.appendChild(row); });
+    return {h:h,t:t,v:v,cur:cur,best:best};
+  }
+  ['cH','cT','cV','cC'].forEach(function(id){ $(id).addEventListener('input',calc); });
+  calc();
+  $('cSend').onclick=function(){ var r=calc(); pick('business'); $('l-goal').value='From the calculator: about '+r.h+' hours a week of repetitive work, '+r.t+' '+(r.t===1?'person':'people')+', an hour is worth about '+r.v+' '+r.cur+'. Which tasks should we start with?'; $('contact').scrollIntoView({behavior:'smooth'}); setTimeout(function(){ $('l-name').focus({preventScroll:true}); },400); };
+
+  var hashType=(location.hash||'').replace('#',''); if(TITLES[hashType]){ pick(hashType); setTimeout(function(){ $('contact').scrollIntoView(); },60); }
+  $('leadForm').addEventListener('submit',function(e){
+    e.preventDefault(); var err=$('l-err'); err.hidden=true;
+    var r=document.querySelector('input[name=type]:checked');
+    var d={type:r?r.value:'',name:$('l-name').value.trim(),email:$('l-email').value.trim(),phone:$('l-phone').value.trim(),company:$('l-company').value.trim(),team:$('l-team').value.trim(),goal:$('l-goal').value.trim(),website:$('l-website').value};
+    function fail(m){ err.textContent=m; err.hidden=false; }
+    if(!d.type) return fail('Pick what you’re interested in.');
+    if(!d.name) return fail('Please add your name.');
+    if(!d.email&&!d.phone) return fail('Add your WhatsApp or email so I can reply.');
+    var b=$('l-send'); b.disabled=true; b.textContent='Sending…';
+    fetch('api.php?action=lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
+      .then(function(x){return x.json();}).then(function(res){ if(!res.ok) throw new Error(res.error||'Could not send. Try again.'); $('leadForm').hidden=true; $('l-ok').hidden=false; })
+      .catch(function(ex){ fail(ex instanceof TypeError?'Can’t reach the server. Check your connection and try again.':ex.message); })
+      .then(function(){ b.disabled=false; b.textContent='Send'; });
+  });
+})();
+</script>
+</body>
+</html>
