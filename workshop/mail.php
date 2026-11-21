@@ -191,7 +191,7 @@ function m_render($type, $r) {
                     . m_list(['<b>Slides</b>: every slide from the session', '<b>Kit</b>: all prompts, 8 tricks to try at home, examples for your work', '<b>7-day challenge</b>: 10 minutes a day. Day 1: brief one real email with Who · Why · What · How · Don’t']),
                 'cta' => [$app, 'Open your slides and kit'],
                 'after' => ($rated ? '' : m_p('One small favour: if you haven’t rated the workshop yet, it takes 30 seconds in the Kit tab and shapes the next one.'))
-                    . m_p('Want to keep going? The free <a href="' . m_h(dirname(rtrim(SITE_URL, '/')) . '/academy/course.html?src=email') . '" style="color:#17322A">Brief Your AI course</a> has the lessons, a quiz and a certificate of completion.')];
+                    . m_p('Want more? I run new hands-on workshops in Dahab, and private ones for teams. <a href="' . m_h(m_wa()) . '" style="color:#17322A">Message me on WhatsApp</a> to get a seat at the next one.')];
             break;
         case 'call':
             $c += ['title' => "Let's look at your AI plan together", 'pre' => 'Your free 20-minute call: pick a time that suits you.',

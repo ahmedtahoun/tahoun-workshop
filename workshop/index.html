@@ -487,11 +487,10 @@ details.job .copy{margin:6px 0 14px}
       </div>
     </section>
     <section class="offer" style="background:var(--card);color:var(--ink);border:2px solid var(--gold)">
-      <h2 style="color:var(--ink)">Keep learning at the Academy</h2>
-      <p style="color:var(--soft)">Today’s workshop as a free self-paced course, with a certificate you can add to LinkedIn. Plus tracks for freelancers, business owners and teams.</p>
+      <h2 style="color:var(--ink)">Join the next workshop</h2>
+      <p style="color:var(--soft)">I run new hands-on AI workshops in Dahab, and private ones for teams and groups. Want a seat at the next one, or one for your team?</p>
       <div style="display:grid;gap:10px;margin-top:12px">
-        <a class="btn" href="../academy/course.html?src=workshop" target="_blank" rel="noopener">Start the free course</a>
-        <a class="btn alt" href="../academy/?src=workshop" target="_blank" rel="noopener" style="flex:1">See all tracks</a>
+        <a class="btn" id="nextWs" href="#" target="_blank" rel="noopener">Tell Ahmed on WhatsApp</a>
       </div>
     </section>
     <section><h2>Stay in touch</h2><div class="contacts" id="contacts"></div></section>
@@ -1031,6 +1030,7 @@ details.job .copy{margin:6px 0 14px}
     l.appendChild(document.createTextNode(label)); a.appendChild(l); a.appendChild(el('span',null,shown)); $('contacts').appendChild(a); }
   var wa=String(C.whatsapp||'').replace(/\D/g,'');
   if(wa) contact('WhatsApp','+'+wa,'https://wa.me/'+wa,'whatsapp');
+  if($('nextWs')){ if(wa) $('nextWs').href='https://wa.me/'+wa+'?text='+encodeURIComponent('Hi Ahmed, I was at the Brief Your AI workshop. I’d like to join your next workshop.'); else $('nextWs').parentNode.parentNode.hidden=true; }
   if(C.booking) contact('Book the free call',C.booking.replace(/^https?:\/\//,''),C.booking,'calendar');
   if(C.linkedin) contact('LinkedIn',C.linkedin.replace(/^https?:\/\/(www\.)?/,''),C.linkedin,'linkedin');
   if(C.facebook) contact('Facebook',C.facebook.replace(/^https?:\/\/(www\.)?/,''),C.facebook,'facebook');
