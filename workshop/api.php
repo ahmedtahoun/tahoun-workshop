@@ -59,6 +59,11 @@ function game_tick(&$g, $pid, $now) {
     unset($p);
     return $changed;
 }
+function game_tick_all(&$g, $now) {
+    $changed = false;
+    foreach (array_keys($g['prog'] ?? []) as $id) if (game_tick($g, (string)$id, $now)) $changed = true;
+    return $changed;
+}
 // End the game on its own once every player has finished and seen their last result.
 function game_autodone(&$g, $now) {
     global $QS;
@@ -321,14 +326,15 @@ if ($action === 'live') {
     $g = load($GAMEF);
     $pid = preg_replace('/[^a-z0-9]/', '', strtolower((string)($_GET['id'] ?? '')));
     $people = load($FILE);
-    $player = ($pid !== '' && isset($people[$pid])) ? $pid : '';
+    $player = ($pid !== '' && isset($people[$pid]) && !is_admin()) ? $pid : ''; // the host watches, never plays
     if (($g['phase'] ?? '') === 'open') {
         // Join the race, skip timed-out questions, end the game when everyone is done. Only write when something changes.
         $now = microtime(true);
         $try = $g;
         $a = game_tick($try, $player, $now);
+        $c = game_tick_all($try, $now);
         $b = game_autodone($try, $now);
-        if ($a || $b) $g = edit($GAMEF, function ($x) use ($player) { $t = microtime(true); game_tick($x, $player, $t); game_autodone($x, $t); return $x; });
+        if ($a || $b || $c) $g = edit($GAMEF, function ($x) use ($player) { $t = microtime(true); game_tick($x, $player, $t); game_tick_all($x, $t); game_autodone($x, $t); return $x; });
     }
     out(['ok' => true, 'step' => (int)($st['step'] ?? 0), 'open' => !empty($st['open']), 'known' => $pid !== '' && isset($people[$pid]), 'game' => game_view($g, $player, $QS, $people, is_admin()), 'now' => microtime(true)]);
 }

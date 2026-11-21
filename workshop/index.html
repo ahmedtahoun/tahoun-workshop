@@ -725,6 +725,11 @@ details.job .copy{margin:6px 0 14px}
       if(lastRevealQ!=='done'&&r&&r<=3){ confetti(); buzz([60,40,60]); }
       lastRevealQ='done'; return;
     }
+    if(!g.question&&g.phase==='open'){ // the host phone, or a phone that hasn't joined: show the race
+      var rc=el('div','final'); rc.appendChild(el('div','medal','🏁')); rc.appendChild(el('p','big','The race is on'));
+      rc.appendChild(el('p',null,(g.finished||0)+' of '+(g.players||0)+' players finished'));
+      box.appendChild(rc); box.appendChild(boardEl(g.board,true)); return;
+    }
     if(g.phase==='countdown'){
       var cd=el('div','gq count'); cd.appendChild(el('p','qn','Get ready · '+g.total+' questions'));
       var n=el('div','cnum'); n.id='gCount'; cd.appendChild(n); cd.appendChild(el('p',null,'Everyone starts together. Answer, then the next question comes right away.'));
