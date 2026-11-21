@@ -97,6 +97,15 @@ main h2{font-family:var(--display);font-size:clamp(28px,2.8vw,46px);font-weight:
 .gfast{background:var(--panel);border:2px solid var(--gold);border-radius:12px;padding:14px 18px;margin:0;font-size:clamp(16px,1.3vw,22px);animation:in .5s .15s ease both}
 .gfast small{display:block;color:var(--gold);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.7em}
 .gfast b{font-family:var(--display);font-size:1.5em}
+.race{display:grid;gap:1.2vh;overflow:auto}
+.rrow{display:grid;grid-template-columns:2.4em minmax(8em,1.2fr) 2fr 3.2em 4.5em;gap:1.2vw;align-items:center;background:var(--panel);border-radius:14px;padding:1.3vh 1.4vw;font-size:clamp(18px,1.6vw,28px);font-weight:700;animation:in .4s ease both}
+.rrow .rk{font-family:var(--display);color:var(--gold);font-size:1.2em}
+.rrow .rn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rrow .rbar{height:12px;border-radius:6px;background:var(--line);overflow:hidden}
+.rrow .rbar i{display:block;height:100%;background:var(--gold);border-radius:6px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.rrow .rq{color:var(--soft);text-align:center}
+.rrow .rp{text-align:right;font-variant-numeric:tabular-nums}
+.rrow.fin{outline:2px solid var(--gold)}
 .gboard{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
 .gboard div{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:12px 14px;font-size:clamp(16px,1.3vw,22px);font-weight:700;animation:in .4s ease both}
 .gboard div:nth-child(2){animation-delay:.06s}.gboard div:nth-child(3){animation-delay:.12s}.gboard div:nth-child(4){animation-delay:.18s}.gboard div:nth-child(5){animation-delay:.24s}
@@ -202,11 +211,11 @@ main h2{font-family:var(--display);font-size:clamp(28px,2.8vw,46px);font-weight:
   var G={phase:'idle'}, gAt=0, lastKey='';
   function F(cc){ return /^[A-Z]{2}$/.test(cc||'')&&cc!=='XX'?String.fromCodePoint(127397+cc.charCodeAt(0),127397+cc.charCodeAt(1)):''; }
   function E(t,c,x){ var e=document.createElement(t); if(c) e.className=c; if(x!=null) e.textContent=x; return e; }
-  ['start','reveal','next','end','close'].forEach(function(op){ $('g'+op.charAt(0).toUpperCase()+op.slice(1)).onclick=function(){ api('action=gamectl',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:op})}).then(live); }; });
+  ['start','end','close'].forEach(function(op){ $('g'+op.charAt(0).toUpperCase()+op.slice(1)).onclick=function(){ if(op==='end'&&!confirm('End the game for everyone now?')) return; api('action=gamectl',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:op})}).then(live); }; });
   function hostButtons(admin){
-    var p=G.phase||'idle', last=G.q+1>=G.total;
-    $('gStart').hidden=!(admin&&(p==='idle'||p==='done')); $('gReveal').hidden=!(admin&&p==='open');
-    $('gNext').hidden=!(admin&&p==='reveal'&&!last); $('gEnd').hidden=!(admin&&p==='reveal'&&last); $('gClose').hidden=!(admin&&p==='done');
+    var p=G.g||'idle';
+    $('gStart').hidden=!(admin&&(p==='idle'||p==='done')); $('gReveal').hidden=true; $('gNext').hidden=true;
+    $('gEnd').hidden=!(admin&&p==='open'); $('gClose').hidden=!(admin&&p==='done');
   }
   var SH=['▲','◆','●','■'], RC=2*Math.PI*44, doneShown=false;
   function confetti(){
@@ -215,58 +224,42 @@ main h2{font-family:var(--display);font-size:clamp(28px,2.8vw,46px);font-weight:
     for(var i=0;i<140;i++){ var p=E('i'); p.style.left=(Math.random()*100)+'%'; p.style.background=cols[i%cols.length]; p.style.animationDelay=(Math.random()*1.2)+'s'; p.style.animationDuration=(2.4+Math.random()*1.8)+'s'; c.appendChild(p); }
     document.body.appendChild(c); setTimeout(function(){ if(c.parentNode) c.parentNode.removeChild(c); },6000);
   }
+  // Self-paced game: the wall shows the race (everyone's progress and points), then the podium.
   function drawGame(){
-    var on=G.phase&&G.phase!=='idle'&&G.question;
+    var gp=G.g||'idle', on=gp!=='idle';
     $('game').hidden=!on; $('qs').hidden=!!on;
-    document.querySelector('main header h2').textContent=on?(G.phase==='done'?'Final results':'Live game'):'Your questions';
+    document.querySelector('main header h2').textContent=on?(gp==='done'?'Final results':'Live game · the race'):'Your questions';
     if(!on){ doneShown=false; return; }
-    var k=G.phase+'|'+G.q+'|'+JSON.stringify(G.board||[])+'|'+(G.counts||[]).join(',');
-    if(k===lastKey){ tickTimer(); dots(); return; } lastKey=k;
+    var k=gp+'|'+(G.finished||0)+'|'+JSON.stringify(G.board||[]);
+    if(k===lastKey) return; lastKey=k;
     var b=$('game'); b.textContent='';
-    if(G.phase==='done'){
+    if(gp==='done'){
       b.appendChild(E('p','ptitle',null)).innerHTML='And the winner is… <span></span>';
       var w=(G.board||[])[0]; b.querySelector('.ptitle span').textContent=w?((F(w.country)?F(w.country)+' ':'')+w.name):'';
       var pod=E('div','podium');
-      [1,0,2].forEach(function(i){ var r=(G.board||[])[i]; var d=E('div','p'+(i+1)); if(r){ d.appendChild(E('span','md',['🥇','🥈','🥉'][i])); d.appendChild(E('b',null,(F(r.country)?F(r.country)+' ':'')+r.name)); d.appendChild(E('span',null,r.points+' points')); } pod.appendChild(d); });
+      [1,0,2].forEach(function(i){ var r=(G.board||[])[i]; var d=E('div','p'+(i+1)); if(r){ d.appendChild(E('span','md',['🥇','🥈','🥉'][i])); d.appendChild(E('b',null,(F(r.country)?F(r.country)+' ':'')+r.name)); d.appendChild(E('span',null,r.points+' points · '+r.time+' s')); } pod.appendChild(d); });
       b.appendChild(pod);
       if(!doneShown){ doneShown=true; setTimeout(confetti,1900); }
       return;
     }
     doneShown=false;
-    var top=E('div','gtop'), pips=E('div','gpips');
-    for(var i=0;i<G.total;i++) pips.appendChild(E('i',i<G.q?'done':i===G.q?'now':''));
-    top.appendChild(pips); top.appendChild(E('span','gmeta','Question '+(G.q+1)+' of '+G.total)); b.appendChild(top);
-    var hd=E('div','ghead'); hd.appendChild(E('p','gq',G.question));
-    var ring=E('div','gring'); ring.id='gt'; ring.innerHTML='<svg viewBox="0 0 100 100" aria-hidden="true"><circle class="bg" cx="50" cy="50" r="44"/><circle class="fg" cx="50" cy="50" r="44"/></svg><b></b>';
-    hd.appendChild(ring); b.appendChild(hd);
-    var o=E('div','gopts'), tot=0; (G.counts||[]).forEach(function(n){ tot+=n; });
-    G.options.forEach(function(x,i){ var d=E('div','gopt'); var cf=E('i','cf'); d.appendChild(cf); d.appendChild(E('span','sh',SH[i]||'')); d.appendChild(E('span',null,x));
-      if(G.phase==='reveal'){ d.classList.add(i===G.correct?'right':'dim'); var n=(G.counts||[])[i]||0; d.appendChild(E('b',null,n)); setTimeout(function(){ cf.style.width=(tot?n/tot*100:0)+'%'; },60); }
-      o.appendChild(d); });
-    b.appendChild(o);
-    if(G.phase==='open'){ var an=E('div','ganswered'); an.id='gAnswered'; b.appendChild(an); }
-    if(G.phase==='reveal'){
-      var row=E('div','grow'); row.appendChild(E('p','gwhy',G.why));
-      var fz=E('p','gfast'); fz.appendChild(E('small',null,'⚡ Fastest right answer'));
-      if(G.fastest){ fz.appendChild(E('b',null,(F(G.fastest.country)?F(G.fastest.country)+' ':'')+G.fastest.name)); fz.appendChild(document.createTextNode(' · '+(+G.fastest.t).toFixed(1)+' s')); }
-      else fz.appendChild(E('b',null,'Nobody this time!'));
-      row.appendChild(fz); b.appendChild(row);
-      var bd=E('div','gboard'); (G.board||[]).forEach(function(r,i){ var d=E('div',null,(i+1)+'. '+(F(r.country)?F(r.country)+' ':'')+r.name); d.appendChild(E('small',null,r.points+' pts')); bd.appendChild(d); }); b.appendChild(bd);
-    }
-    dots(); tickTimer();
+    var top=E('div','gtop'); top.appendChild(E('span','gmeta',(G.total||10)+' questions · right + fast = more points · last 2 count double'));
+    top.appendChild(E('span','gmeta',(G.finished||0)+' of '+(G.players||0)+' finished')); b.appendChild(top);
+    var list=E('div','race');
+    if(!(G.board||[]).length) list.appendChild(E('div','empty','Phones are joining… the first question opens in a moment.'));
+    (G.board||[]).forEach(function(r,i){
+      var row=E('div','rrow'+(r.q>=(G.total||10)?' fin':''));
+      row.appendChild(E('span','rk',String(i+1)));
+      row.appendChild(E('span','rn',(F(r.country)?F(r.country)+' ':'')+r.name));
+      var bar=E('span','rbar'), fill=E('i'); fill.style.width=(Math.min(r.q,G.total||10)/(G.total||10)*100)+'%'; bar.appendChild(fill); row.appendChild(bar);
+      row.appendChild(E('span','rq',r.q>=(G.total||10)?'🏁':'Q'+(r.q+1)));
+      row.appendChild(E('b','rp',String(r.points)));
+      list.appendChild(row);
+    });
+    b.appendChild(list);
   }
-  function dots(){
-    var a=$('gAnswered'); if(!a||G.phase!=='open') return;
-    var n=G.players||0, k=G.answered||0;
-    if(a.dataset.k===n+'|'+k) return; a.dataset.k=n+'|'+k; a.textContent='';
-    var d=E('div','dots'); for(var i=0;i<n;i++) d.appendChild(E('i',i<k?'on':'')); a.appendChild(d); a.appendChild(E('span',null,k+' of '+n+' answered'));
-  }
-  function tickTimer(){
-    var t=$('gt'); if(!t) return; var open=G.phase==='open', lim=G.limit||20, left=open?Math.max(0,(G.remaining||0)-(Date.now()-gAt)/1000):0;
-    var fg=t.querySelector('.fg'); fg.style.strokeDasharray=RC; fg.style.strokeDashoffset=RC*(1-left/lim);
-    t.querySelector('b').textContent=open?(left>0?String(Math.ceil(left)):'Time!'):'✓';
-    t.classList.toggle('hurry',open&&left>0&&left<=5); t.classList.toggle('done',!open||left<=0);
-  }
+  function tickTimer(){}
+  function dots(){}
   setInterval(tickTimer,250);
   function live(){
     api('action=live').then(function(d){ if(!d.ok) return; G=d.game||{phase:'idle'}; gAt=Date.now(); drawGame(); hostButtons(!!key); }).catch(function(){});

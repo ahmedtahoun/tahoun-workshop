@@ -183,6 +183,13 @@ button:focus-visible,.opt input:focus-visible+span,.check input:focus-visible{ou
 .ans small{font-weight:700;font-size:15px;background:rgba(0,0,0,.2);border-radius:999px;padding:3px 10px}
 @keyframes glow{50%{transform:scale(1.03)}}
 @keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}}
+.gq.hard{background:linear-gradient(160deg,#6E1A13,var(--red))}
+.hardtag{display:inline-block;margin-left:8px;background:var(--gold);color:var(--green);border-radius:999px;padding:2px 9px;font-size:11px;letter-spacing:.04em;text-transform:none}
+.gq.count{text-align:center;padding:26px 18px}
+.gq.count p:last-child{color:#C9D6CC;margin:6px 0 0;font-size:15px}
+.cnum{font-family:var(--display);font-size:96px;font-weight:600;line-height:1;margin:10px 0;color:var(--gold);font-variant-numeric:tabular-nums;animation:pop .35s ease both}
+.nextq{text-align:center;color:var(--soft);font-weight:700;margin:12px 0 0}
+.board .bt{color:var(--soft);font-weight:500;font-size:13px}
 .wait{display:flex;align-items:center;gap:12px;border-radius:16px;padding:16px;margin-top:14px;background:var(--card);border:1.5px solid var(--line);font-weight:700}
 .wait .dotp{width:10px;height:10px;border-radius:50%;background:var(--green);animation:beat 1.2s infinite}
 .wait span{font-weight:500;color:var(--soft);display:block;font-size:14px}
@@ -695,15 +702,18 @@ details.job .copy{margin:6px 0 14px}
     requestAnimationFrame(f);
   }
   function hostName(){ return ((C.name||'Ahmed').split(' ')[0]); }
+  // Self-paced game: everyone starts together, each player moves on as soon as they answer.
+  // game.g = the whole game (idle/open/done); game.phase = this player's screen (countdown/open/reveal/finished/done).
+  var nextTimer=null;
   function drawPlay(){
-    var g=game, inGame=!!(g.phase&&g.phase!=='idle'&&g.question);
+    var g=game, gp=g.g||g.phase||'idle', inGame=gp!=='idle';
     if(quizMode&&!(checkedIn&&cs()>=6)) quizMode=false;
     $('playQuiz').hidden=!quizMode;
     $('playGame').hidden=quizMode||!inGame;
-    $('playHub').hidden=quizMode||(inGame&&g.phase!=='done');
+    $('playHub').hidden=quizMode||(inGame&&gp!=='done');
     if(!$('playHub').hidden) drawHub();
     if(quizMode||!inGame) return;
-    var key2=g.phase+'|'+g.q+'|'+(g.mine!=null)+'|'+checkedIn+'|'+(g.counts?g.counts.join(','):'')+'|'+(g.board?JSON.stringify(g.board):'');
+    var key2=g.phase+'|'+g.q+'|'+(g.mine!=null)+'|'+checkedIn+'|'+(g.finished||0)+'|'+(g.board?JSON.stringify(g.board):'');
     if(key2===lastGameKey){ updateTimer(); updAnswered(); return; } lastGameKey=key2;
     var box=$('playGame'); box.textContent='';
     if(!checkedIn){ var w=el('div','locknote'); w.appendChild(el('h2',null,'Check in to play')); w.appendChild(el('p',null,'Go to Today, check in, then come back here.')); box.appendChild(w); return; }
@@ -711,62 +721,89 @@ details.job .copy{margin:6px 0 14px}
       var r=g.rank||0, fin=el('div','final');
       fin.appendChild(el('div','medal',r===1?'🏆':r===2?'🥈':r===3?'🥉':'🎉'));
       fin.appendChild(el('p','big',r===1?'You won!':(r&&r<=3)?'You made the podium!':'Game over'));
-      fin.appendChild(el('p',null,r?('You finished #'+r+' with '+(g.myScore||0)+' points.'):'Thanks for playing!'));
-      box.appendChild(fin); box.appendChild(boardEl(g.board));
+      fin.appendChild(el('p',null,r?('You finished #'+r+' with '+(g.myScore||0)+' points'+(g.myRight!=null?' · '+g.myRight+' of '+g.total+' right':'')+'.'):'Thanks for playing!'));
+      box.appendChild(fin); box.appendChild(boardEl(g.board,true));
       if(lastRevealQ!=='done'&&r&&r<=3){ confetti(); buzz([60,40,60]); }
       lastRevealQ='done'; return;
     }
-    var card=el('div','gq'), meta=el('div','meta'), pips=el('div','pips');
+    if(g.phase==='countdown'){
+      var cd=el('div','gq count'); cd.appendChild(el('p','qn','Get ready · '+g.total+' questions'));
+      var n=el('div','cnum'); n.id='gCount'; cd.appendChild(n); cd.appendChild(el('p',null,'Everyone starts together. Answer, then the next question comes right away.'));
+      box.appendChild(cd); schedulePoll(g.next); updAnswered(); return;
+    }
+    if(g.phase==='finished'){
+      var fz=el('div','final');
+      fz.appendChild(el('div','medal','🏁'));
+      fz.appendChild(el('p','big','You’re done!'));
+      fz.appendChild(el('p',null,(g.myScore||0)+' points'+(g.rank?' · #'+g.rank+' right now':'')+(g.myRight!=null?' · '+g.myRight+' of '+g.total+' right':'')));
+      var wt=el('div','wait'); wt.appendChild(el('i','dotp')); var tx=el('div',null,'Waiting for the others'); var sp=el('span'); sp.id='gAns'; tx.appendChild(sp); wt.appendChild(tx);
+      box.appendChild(fz); box.appendChild(wt); box.appendChild(boardEl(g.board,true)); updAnswered(); return;
+    }
+    var card=el('div','gq'+(g.hard?' hard':'')), meta=el('div','meta'), pips=el('div','pips');
     for(var i=0;i<g.total;i++) pips.appendChild(el('i',i<g.q?'done':i===g.q?'now':''));
     meta.appendChild(pips);
     var ring=el('div','ring'); ring.id='gRing'; ring.innerHTML='<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="bg" cx="26" cy="26" r="22"/><circle class="fg" cx="26" cy="26" r="22"/></svg><b></b>';
     meta.appendChild(ring); card.appendChild(meta);
-    card.appendChild(el('p','qn','Question '+(g.q+1)+' of '+g.total)); card.appendChild(el('p','qt',g.question));
+    var qn=el('p','qn','Question '+(g.q+1)+' of '+g.total); if(g.hard) qn.appendChild(el('span','hardtag','🔥 Hard · double points')); card.appendChild(qn);
+    card.appendChild(el('p','qt',g.question));
     box.appendChild(card);
     var ans=el('div','answers');
     g.options.forEach(function(o,i){
       var b=el('button','ans'); b.type='button'; b.appendChild(el('span','sh',SHAPES[i]||'')); b.appendChild(el('span',null,o));
-      if(g.phase==='reveal'){ b.disabled=true; b.classList.add(i===g.correct?'right':'dim'); if(i===g.mine&&i!==g.correct) b.classList.add('picked'); if(g.counts) b.appendChild(el('small',null,g.counts[i]+'')); }
+      if(g.phase==='reveal'){ b.disabled=true; b.classList.add(i===g.correct?'right':'dim'); if(i===g.mine&&i!==g.correct) b.classList.add('picked'); }
       else if(g.mine!=null){ b.disabled=true; b.classList.add(i===g.mine?'picked':'dim'); }
       else b.onclick=function(){ answer(g.q,i); };
       ans.appendChild(b);
     });
     box.appendChild(ans);
-    if(g.phase==='open'&&lastOpenQ!==g.q){ lastOpenQ=g.q; buzz(50); }
+    if(g.phase==='open'&&lastOpenQ!==g.q){ lastOpenQ=g.q; buzz(50); if(cur==='play') window.scrollTo(0,0); }
     if(g.phase==='reveal'){
       var ok=g.mine!=null&&g.mine===g.correct, fresh=lastRevealQ!==g.q, bn=el('div','banner '+(g.mine==null?'none':ok?'good':'bad'));
       if(ok){
         var big=el('div','big','+'+(g.gained||0)); bn.appendChild(big);
-        bn.appendChild(el('div','lbl','Correct'+(g.myT!=null?' in '+(+g.myT).toFixed(1)+' seconds':'')+'!'));
+        bn.appendChild(el('div','lbl','Correct'+(g.myT!=null?' in '+(+g.myT).toFixed(1)+' seconds':'')+'!'+(g.hard?' Double points!':'')));
         if(g.streak>=2) bn.appendChild(el('span','streak','🔥 '+g.streak+' in a row'));
         if(fresh){ countUp(big,g.gained||0); confetti(); buzz([40,40,40]); }
       } else {
-        bn.appendChild(el('div','lbl',g.mine==null?'No answer this time':'Not this time'));
+        bn.appendChild(el('div','lbl',g.mine==null?'Time’s up':'Not this time'));
         bn.appendChild(el('div',null,'Right answer: '+g.options[g.correct]));
         if(fresh&&g.mine!=null) buzz(150);
       }
       lastRevealQ=g.q;
       box.appendChild(bn);
+      if(fresh&&cur==='play') setTimeout(function(){ try{ bn.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){} },60);
       box.appendChild(el('p','why',g.why));
       var mine=el('div','mine'); mine.appendChild(el('span',null,'Your score'+(g.rank?' · #'+g.rank:''))); mine.appendChild(el('b',null,(g.myScore||0)+'')); box.appendChild(mine);
-      box.appendChild(boardEl(g.board));
+      var nx=el('p','nextq'); nx.id='gAns'; box.appendChild(nx);
+      schedulePoll(g.next);
     } else if(g.mine!=null){
-      var wt=el('div','wait'); wt.appendChild(el('i','dotp')); var tx=el('div',null,'Locked in!'); var sp=el('span'); sp.id='gAns'; tx.appendChild(sp); wt.appendChild(tx); box.appendChild(wt);
+      var wt2=el('div','wait'); wt2.appendChild(el('i','dotp')); wt2.appendChild(el('div',null,'Locked in!')); box.appendChild(wt2);
     } else { var hint=el('p','small'); hint.id='gAns'; hint.style.marginTop='12px'; hint.style.textAlign='center'; box.appendChild(hint); }
     updAnswered(); updateTimer();
   }
-  function updAnswered(){ var a=$('gAns'); if(a&&game.phase==='open') a.textContent=game.answered+' of '+game.players+' answered'+(game.mine!=null?' · the answer shows here in a moment':' · right and fast wins most points'); }
+  // Ask the server again right when the result screen or countdown ends, so the next question appears on time.
+  function schedulePoll(sec){ clearTimeout(nextTimer); nextTimer=setTimeout(poll,Math.max(200,(sec||0)*1000+150)); }
+  function leftOf(sec){ return Math.max(0,(sec||0)-(Date.now()-remainingAt)/1000); }
+  function updAnswered(){
+    var a=$('gAns'), c=$('gCount');
+    if(c) c.textContent=String(Math.max(1,Math.ceil(leftOf(game.next))));
+    if(!a) return;
+    if(game.phase==='open') a.textContent=game.hard?'Hard one: 30 seconds, double points':'Right and fast wins most points';
+    else if(game.phase==='reveal') a.textContent=game.last?'That was the last one!':'Next question in '+Math.max(1,Math.ceil(leftOf(game.next)))+'…';
+    else if(game.phase==='finished') a.textContent=(game.finished||0)+' of '+(game.players||0)+' players finished';
+  }
+  setInterval(function(){ if(game.phase==='countdown'||game.phase==='reveal') updAnswered(); },250);
   function drawHub(){
-    var g=game, k=[cs(),step,g.phase,checkedIn,!!qz.done,qz.i||0,qz.score||0,g.rank||0,g.myScore||0].join('|');
+    var g=game, gp=g.g||g.phase, k=[cs(),step,gp,checkedIn,!!qz.done,qz.i||0,qz.score||0,g.rank||0,g.myScore||0].join('|');
     if(k===hubKey) return; hubKey=k;
     var h=$('playHub'); h.textContent='';
-    if(g.phase!=='done'){ h.appendChild(el('h1',null,'Game & quiz')); h.appendChild(el('p','lead','Two ways to play today.')); }
+    if(gp!=='done'){ h.appendChild(el('h1',null,'Game & quiz')); h.appendChild(el('p','lead','Two ways to play today.')); }
     else h.style.marginTop='18px';
     var hub=el('div','hub');
     var L=el('div','hcard live'); L.appendChild(el('p','k','Live game · on your phone')); L.appendChild(el('h2',null,'Beat the room'));
-    var f=el('div','facts'); ['8 questions','20 seconds each','Right + fast = more points'].forEach(function(t){ f.appendChild(el('span',null,t)); }); L.appendChild(f);
+    var f=el('div','facts'); ['10 questions','Your own speed','Last 2: double points'].forEach(function(t){ f.appendChild(el('span',null,t)); }); L.appendChild(f);
     var st=el('div','hstate');
-    if(g.phase==='done') st.appendChild(el('span',null,'Finished'+(g.rank?' · you were #'+g.rank+' with '+(g.myScore||0)+' points':'')));
+    if(gp==='done') st.appendChild(el('span',null,'Finished'+(g.rank?' · you were #'+g.rank+' with '+(g.myScore||0)+' points':'')));
     else if(step<3&&!(key||openAll)) st.appendChild(el('span',null,'🔒 Starts after Part 3'));
     else { st.appendChild(el('i','dotp')); st.appendChild(el('span',null,'Keep this tab open. It starts when '+hostName()+' presses Start.')); }
     L.appendChild(st); hub.appendChild(L);
@@ -780,37 +817,44 @@ details.job .copy{margin:6px 0 14px}
     }
     hub.appendChild(Q); h.appendChild(hub);
   }
-  function boardEl(board){
+  function boardEl(board,withTime){
     var b=el('div','board');
-    (board||[]).forEach(function(r,i){ var d=el('div',r.me?'me':''); d.appendChild(el('span','rk',(i+1)+'')); d.appendChild(el('span',null,(flag(r.country)?flag(r.country)+' ':'')+r.name+(r.me?' (you)':''))); d.appendChild(el('span',null,r.points+'')); b.appendChild(d); });
+    (board||[]).forEach(function(r,i){ var d=el('div',r.me?'me':''); d.appendChild(el('span','rk',(i+1)+''));
+      var nm=el('span',null,(flag(r.country)?flag(r.country)+' ':'')+r.name+(r.me?' (you)':'')); if(withTime) nm.appendChild(el('small','bt',(r.q<(game.total||10)?' · Q'+(r.q+1)+' now':' · '+r.time+' s')));
+      d.appendChild(nm); d.appendChild(el('span',null,r.points+'')); b.appendChild(d); });
     return b;
   }
   var remainingAt=0, remaining=0, RC=2*Math.PI*22;
   function updateTimer(){
     var r=$('gRing'); if(!r) return;
-    var lim=game.limit||20, open=game.phase==='open', left=open?Math.max(0,remaining-(Date.now()-remainingAt)/1000):0;
+    var lim=game.limit||20, open=game.phase==='open'&&game.mine==null, left=open?Math.max(0,remaining-(Date.now()-remainingAt)/1000):0;
     var fg=r.querySelector('.fg'); fg.style.strokeDasharray=RC; fg.style.strokeDashoffset=RC*(1-left/lim);
     r.querySelector('b').textContent=open?String(Math.ceil(left)):'';
     r.classList.toggle('hurry',open&&left>0&&left<=5);
+    if(open&&left<=0&&!r.dataset.out){ r.dataset.out='1'; schedulePoll(1.6); }
   }
   setInterval(updateTimer,250);
   function answer(q,c){
     if(game.phase==='open' && remaining-(Date.now()-remainingAt)/1000 <= -1){ toast('Time’s up for this one'); return; }
     game.mine=c; lastGameKey=''; drawPlay(); badges();
     fetch('api.php?action=answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,q:q,c:c})})
-      .then(function(r){return r.json();}).then(function(d){ if(!d.ok){ toast(d.error||'Too late for this one'); } })
+      .then(function(r){return r.json();}).then(function(d){
+        if(!d.ok) toast(d.error||'Too late for this one');
+        if(d.game){ game=d.game; remaining=game.remaining||0; remainingAt=Date.now(); lastGameKey=''; drawPlay(); badges(); }
+        else poll();
+      })
       .catch(function(){ toast('No connection. Try again.'); game.mine=null; lastGameKey=''; drawPlay(); });
   }
   function poll(){
     fetch('api.php?action=live&id='+id+(key?'&key='+encodeURIComponent(key):''),{cache:'no-store'})
       .then(function(r){return r.json();}).then(function(d){
         if(!d||!d.ok) return;
-        var was=game.phase+'|'+game.q;
+        var was=game.g||game.phase||'idle';
         game=d.game||{phase:'idle'}; remaining=game.remaining||0; remainingAt=Date.now();
         if(checkedIn && d.known===false){ checkedIn=false; store('bya.done','0'); $('doneBox').hidden=true; $('f').hidden=false; ws=1; drawWiz(); toast('Please check in again for today’s session'); }
         if(!!d.open!==openAll){ openAll=!!d.open; drawSlides(); drawLearned(); drawPlay(); }
         onStep(d.step,true);
-        if(game.phase==='open' && was!==game.phase+'|'+game.q && game.mine==null){ if(cur!=='play') toast('Game on! Open the Play tab'); }
+        if(game.g==='open' && was!=='open' && checkedIn){ if(cur!=='play') toast('Game on! Open the Play tab'); }
         drawPlay(); badges(); drawHost();
       }).catch(function(){});
   }
@@ -818,17 +862,19 @@ details.job .copy{margin:6px 0 14px}
   // ---------- Host controls ----------
   function drawHost(){
     if(!key) return;
-    var p=game.phase||'idle', last=game.q+1>=game.total;
-    $('hostGame').textContent=p==='idle'?'Game: ready':p==='open'?'Q'+(game.q+1)+' open':p==='reveal'?'Q'+(game.q+1)+' revealed':'Game over';
-    $('gStart').hidden=!(p==='idle'||p==='done'); $('gReveal').hidden=p!=='open'; $('gNext').hidden=!(p==='reveal'&&!last);
-    $('gEnd').hidden=!(p==='reveal'&&last); $('gClose').hidden=p!=='done';
+    var p=game.g||'idle';
+    $('hostGame').textContent=p==='idle'?'Game: ready':p==='done'?'Game over':'Game on · '+(game.finished||0)+' of '+(game.players||0)+' done';
+    $('gStart').hidden=!(p==='idle'||p==='done'); $('gReveal').hidden=true; $('gNext').hidden=true;
+    $('gEnd').hidden=p!=='open'; $('gClose').hidden=p!=='done';
   }
   if(key){
     $('host').hidden=false; document.querySelector('main').style.paddingBottom='calc(var(--tabh) + 120px + env(safe-area-inset-bottom,0px))';
     var hpost=function(action,body){ return fetch('api.php?action='+action+'&key='+encodeURIComponent(key),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(d){ if(!d.ok) toast(d.error||'Not allowed'); poll(); }).catch(function(){ toast('No connection'); }); };
     $('hNext').onclick=function(){ hpost('step',{step:Math.min(6,step+1)}); };
     $('hPrev').onclick=function(){ hpost('step',{step:Math.max(0,step-1)}); };
-    ['start','reveal','next','end','close'].forEach(function(op){ $('g'+op.charAt(0).toUpperCase()+op.slice(1)).onclick=function(){ hpost('gamectl',{op:op}); }; });
+    $('gStart').onclick=function(){ hpost('gamectl',{op:'start'}); };
+    $('gEnd').onclick=function(){ if(confirm('End the game for everyone now?')) hpost('gamectl',{op:'end'}); };
+    $('gClose').onclick=function(){ hpost('gamectl',{op:'close'}); };
     drawHost();
   }
 

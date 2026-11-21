@@ -9,3 +9,6 @@ PLAN.md
 upload-update/
 node_modules/
 .DS_Store
+
+# Personal coaching notes (not for the public repo)
+coach/

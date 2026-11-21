@@ -23,70 +23,117 @@ $QS = [
     ['q' => 'The AI says your business plan is brilliant. Best next prompt?', 'o' => ['“Thank you!”', '“List the 3 biggest reasons it could fail.”', '“Make it longer.”'], 'a' => 1, 'why' => 'AI tends to agree with you. Ask it to push back.'],
     ['q' => 'Safe to paste a client’s name and medical notes into a public AI tool?', 'o' => ['Yes, it’s private', 'No, remove personal details first', 'Only on weekends'], 'a' => 1, 'why' => 'Swap names for [Client A] and leave health details out.'],
     ['q' => 'The first answer is okay, not great. What do you do?', 'o' => ['Accept it', 'Start a new chat', 'Reply with feedback: “Shorter, warmer.”'], 'a' => 2, 'why' => 'Never keep the first draft. The conversation is where quality comes from.'],
+    // Hard finish: 30 seconds and double points. t = seconds, x = points multiplier.
+    ['q' => 'You ask the same question twice and get two different answers. Why?', 'o' => ['It’s broken', 'It picks likely words, with a little randomness', 'It searched the web again', 'It learned from your last chat'], 'a' => 1, 'why' => 'AI predicts the next likely word, with some chance in each pick. Same question, different wording, so always check.', 't' => 30, 'x' => 2],
+    ['q' => 'You paste a 40-page report and ask for a summary. Where is AI most likely to miss things?', 'o' => ['The first pages', 'The middle pages', 'The last pages', 'Nowhere, it reads everything equally'], 'a' => 1, 'why' => 'Models pay most attention to the start and the end. Ask for a summary section by section.', 't' => 30, 'x' => 2],
 ];
+$PAUSE = 4; // seconds each player sees their result before the next question
 
-function game_points($g) {
-    global $QS, $LIMIT;
-    $p = [];
-    foreach (($g['answers'] ?? []) as $q => $ans) {
-        // only score questions that have been revealed (or passed)
-        $passed = ((int)($g['q'] ?? -1) > $q) || in_array($g['phase'] ?? '', ['reveal', 'done', 'idle'], true);
-        if (!$passed || !isset($QS[$q])) continue;
-        foreach ($ans as $pid => $a) {
-            $pts = ((int)$a['c'] === $QS[$q]['a']) ? (int)round(500 + 500 * (1 - min($a['t'], $LIMIT) / $LIMIT)) : 0;
-            $p[$pid] = ($p[$pid] ?? 0) + $pts;
-        }
+// ---- Self-paced game: everyone starts together, each player moves on as soon as they answer. ----
+// game.json: phase idle|open|done, startedAt, answers[q][pid] = {c, t}, prog[pid] = {q: next question, at: when it opens}
+function qlim($i) { global $QS, $LIMIT; return (int)($QS[$i]['t'] ?? $LIMIT); }
+function qpts($i, $a) {
+    global $QS;
+    if (!isset($QS[$i]) || (int)$a['c'] !== $QS[$i]['a']) return 0;
+    $lim = qlim($i);
+    return (int)round((500 + 500 * (1 - min($a['t'], $lim) / $lim)) * ($QS[$i]['x'] ?? 1));
+}
+// Make sure this player is in the race and skip any questions they ran out of time on. Returns true if $g changed.
+function game_tick(&$g, $pid, $now) {
+    global $QS, $PAUSE;
+    if (($g['phase'] ?? '') !== 'open' || !$pid) return false;
+    $n = count($QS);
+    $changed = false;
+    if (!isset($g['prog'][$pid])) {
+        $start = (float)($g['startedAt'] ?? $now);
+        $g['prog'][$pid] = ['q' => 0, 'at' => ($now - $start > qlim(0)) ? $now : $start]; // late joiners get a full first question
+        $changed = true;
     }
+    $p = &$g['prog'][$pid];
+    while ($p['q'] < $n && $now >= $p['at'] && $now - $p['at'] > qlim($p['q']) + 1.5) {
+        $g['answers'][$p['q']][$pid] = ['c' => -1, 't' => qlim($p['q'])];
+        $p['at'] = $p['at'] + qlim($p['q']) + 1.5 + $PAUSE;
+        $p['q']++;
+        $changed = true;
+    }
+    unset($p);
+    return $changed;
+}
+// End the game on its own once every player has finished and seen their last result.
+function game_autodone(&$g, $now) {
+    global $QS;
+    if (($g['phase'] ?? '') !== 'open' || empty($g['prog'])) return false;
+    foreach ($g['prog'] as $p) if ($p['q'] < count($QS) || $now < $p['at']) return false;
+    $g['phase'] = 'done';
+    $g['endedAt'] = $now;
+    return true;
+}
+// Points per player (also used by the CSV export).
+function game_points($g) {
+    $p = [];
+    foreach (($g['answers'] ?? []) as $q => $ans) foreach ($ans as $pid => $a) $p[$pid] = ($p[$pid] ?? 0) + qpts((int)$q, $a);
     return $p;
+}
+// Ranking: most points first; on a tie, less total answer time wins.
+function game_rank($g) {
+    $rows = [];
+    foreach (($g['prog'] ?? []) as $pid => $pr) $rows[$pid] = ['pts' => 0, 'time' => 0.0, 'q' => (int)$pr['q'], 'right' => 0];
+    foreach (($g['answers'] ?? []) as $q => $ans) foreach ($ans as $pid => $a) {
+        if (!isset($rows[$pid])) $rows[$pid] = ['pts' => 0, 'time' => 0.0, 'q' => 0, 'right' => 0];
+        $pts = qpts((int)$q, $a);
+        $rows[$pid]['pts'] += $pts;
+        $rows[$pid]['time'] += (float)$a['t'];
+        if ($pts > 0) $rows[$pid]['right']++;
+    }
+    uasort($rows, function ($a, $b) { return $b['pts'] <=> $a['pts'] ?: $a['time'] <=> $b['time']; });
+    return $rows;
 }
 
 function game_view($g, $pid, $QS, $people, $admin) {
-    global $LIMIT;
-    $phase = $g['phase'] ?? 'idle';
-    $q = (int)($g['q'] ?? -1);
-    $v = ['phase' => $phase, 'q' => $q, 'total' => count($QS), 'limit' => $LIMIT, 'players' => count($people)];
-    if ($phase === 'idle' || !isset($QS[$q])) return $v;
-    $ans = $g['answers'][$q] ?? [];
-    $v['question'] = $QS[$q]['q'];
-    $v['options'] = $QS[$q]['o'];
-    $v['answered'] = count($ans);
-    $v['remaining'] = max(0, $LIMIT - (microtime(true) - (float)($g['openedAt'] ?? 0)));
-    if ($pid && isset($ans[$pid])) $v['mine'] = (int)$ans[$pid]['c'];
-    if ($phase === 'reveal' || $phase === 'done') {
-        $v['correct'] = $QS[$q]['a'];
-        $v['why'] = $QS[$q]['why'];
-        $counts = array_fill(0, count($QS[$q]['o']), 0);
-        foreach ($ans as $a) if (isset($counts[$a['c']])) $counts[$a['c']]++;
-        $v['counts'] = $counts;
-        // This player's points for this question, and the fastest right answer in the room.
-        if ($pid && isset($ans[$pid])) {
-            $v['myT'] = $ans[$pid]['t'];
-            $v['gained'] = ((int)$ans[$pid]['c'] === $QS[$q]['a']) ? (int)round(500 + 500 * (1 - min($ans[$pid]['t'], $LIMIT) / $LIMIT)) : 0;
-        }
-        $best = null;
-        foreach ($ans as $id => $a) if ((int)$a['c'] === $QS[$q]['a'] && ($best === null || $a['t'] < $ans[$best]['t'])) $best = $id;
-        if ($best !== null && isset($people[$best])) $v['fastest'] = ['name' => $people[$best]['name'], 'country' => ($people[$best]['country'] ?? '') === 'XX' ? '' : ($people[$best]['country'] ?? ''), 't' => $ans[$best]['t']];
-    }
-    // Right answers in a row, up to the last revealed question.
-    if ($pid) {
-        $s = 0;
-        for ($i = in_array($phase, ['reveal', 'done'], true) ? $q : $q - 1; $i >= 0; $i--) {
-            if (isset($g['answers'][$i][$pid]) && (int)$g['answers'][$i][$pid]['c'] === $QS[$i]['a']) $s++; else break;
-        }
-        $v['streak'] = $s;
-    }
-    $pts = game_points($g);
-    arsort($pts);
-    $board = [];
-    $rank = 0; $i = 0;
-    foreach ($pts as $id => $p) {
+    global $PAUSE;
+    $now = microtime(true);
+    $gp = $g['phase'] ?? 'idle';
+    $n = count($QS);
+    $v = ['g' => $gp, 'phase' => $gp, 'total' => $n, 'players' => count($g['prog'] ?? []), 'limit' => qlim(0)];
+    if ($gp === 'idle') return $v;
+    $fin = 0;
+    foreach (($g['prog'] ?? []) as $p) if ($p['q'] >= $n) $fin++;
+    $v['finished'] = $fin;
+    // Leaderboard (top 10: the whole room).
+    $board = []; $i = 0; $rank = 0;
+    foreach (game_rank($g) as $id => $r) {
         $i++;
-        if ($id === $pid) { $rank = $i; $v['myScore'] = $p; }
-        if (count($board) < 5) $board[] = ['name' => isset($people[$id]) ? $people[$id]['name'] : 'Guest', 'country' => ($people[$id]['country'] ?? '') === 'XX' ? '' : ($people[$id]['country'] ?? ''), 'points' => $p, 'me' => $id === $pid];
+        if ($id === $pid) { $rank = $i; $v['myScore'] = $r['pts']; $v['myTime'] = round($r['time'], 1); $v['myRight'] = $r['right']; }
+        if (count($board) < 10) $board[] = ['name' => isset($people[$id]) ? $people[$id]['name'] : 'Guest', 'country' => ($people[$id]['country'] ?? '') === 'XX' ? '' : ($people[$id]['country'] ?? ''), 'points' => $r['pts'], 'time' => round($r['time'], 1), 'q' => min($r['q'], $n), 'me' => $id === $pid];
     }
-    if ($pid && !isset($v['myScore'])) $v['myScore'] = 0;
     $v['rank'] = $rank;
     $v['board'] = $board;
+    if ($pid && !isset($v['myScore'])) $v['myScore'] = 0;
+    if ($gp === 'done' || !$pid || !isset($g['prog'][$pid])) return $v; // wall, host without check-in, or game over
+    // This player's own screen.
+    $p = $g['prog'][$pid];
+    $streak = 0;
+    for ($k = $p['q'] - 1; $k >= 0; $k--) { if (qpts($k, $g['answers'][$k][$pid] ?? ['c' => -1, 't' => 0]) > 0) $streak++; else break; }
+    $v['streak'] = $streak;
+    if ($p['q'] > 0 && $now < $p['at']) {
+        // Short result screen for the question just answered.
+        $q = $p['q'] - 1;
+        $a = $g['answers'][$q][$pid] ?? ['c' => -1, 't' => qlim($q)];
+        $v += ['phase' => 'reveal', 'q' => $q, 'question' => $QS[$q]['q'], 'options' => $QS[$q]['o'], 'correct' => $QS[$q]['a'], 'why' => $QS[$q]['why'],
+            'mine' => (int)$a['c'] >= 0 ? (int)$a['c'] : null, 'myT' => $a['t'], 'gained' => qpts($q, $a), 'hard' => !empty($QS[$q]['x']), 'next' => max(0, $p['at'] - $now), 'last' => $p['q'] >= $n];
+        $v['phase'] = 'reveal';
+        return $v;
+    }
+    if ($p['q'] === 0 && $now < $p['at']) { $v['phase'] = 'countdown'; $v['q'] = 0; $v['next'] = $p['at'] - $now; return $v; }
+    if ($p['q'] >= $n) { $v['phase'] = 'finished'; $v['q'] = $n; return $v; }
+    $q = $p['q'];
+    $v['phase'] = 'open';
+    $v['q'] = $q;
+    $v['question'] = $QS[$q]['q'];
+    $v['options'] = $QS[$q]['o'];
+    $v['limit'] = qlim($q);
+    $v['remaining'] = max(0, qlim($q) - ($now - $p['at']));
+    $v['hard'] = !empty($QS[$q]['x']);
     return $v;
 }
 
@@ -274,7 +321,16 @@ if ($action === 'live') {
     $g = load($GAMEF);
     $pid = preg_replace('/[^a-z0-9]/', '', strtolower((string)($_GET['id'] ?? '')));
     $people = load($FILE);
-    out(['ok' => true, 'step' => (int)($st['step'] ?? 0), 'open' => !empty($st['open']), 'known' => $pid !== '' && isset($people[$pid]), 'game' => game_view($g, $pid, $QS, $people, is_admin()), 'now' => microtime(true)]);
+    $player = ($pid !== '' && isset($people[$pid])) ? $pid : '';
+    if (($g['phase'] ?? '') === 'open') {
+        // Join the race, skip timed-out questions, end the game when everyone is done. Only write when something changes.
+        $now = microtime(true);
+        $try = $g;
+        $a = game_tick($try, $player, $now);
+        $b = game_autodone($try, $now);
+        if ($a || $b) $g = edit($GAMEF, function ($x) use ($player) { $t = microtime(true); game_tick($x, $player, $t); game_autodone($x, $t); return $x; });
+    }
+    out(['ok' => true, 'step' => (int)($st['step'] ?? 0), 'open' => !empty($st['open']), 'known' => $pid !== '' && isset($people[$pid]), 'game' => game_view($g, $player, $QS, $people, is_admin()), 'now' => microtime(true)]);
 }
 
 if ($action === 'answer' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -282,31 +338,34 @@ if ($action === 'answer' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $pid = preg_replace('/[^a-z0-9]/', '', strtolower((string)($in['id'] ?? '')));
     $q = (int)($in['q'] ?? -1);
     $c = (int)($in['c'] ?? -1);
-    if (!$pid || !isset(load($FILE)[$pid])) out(['ok' => false, 'error' => 'Check in first to play.'], 400);
-    $res = ['ok' => false, 'error' => 'This question is closed.'];
-    edit($GAMEF, function ($g) use ($pid, $q, $c, $QS, $LIMIT, &$res) {
-        if (($g['phase'] ?? '') !== 'open' || (int)($g['q'] ?? -1) !== $q || !isset($QS[$q]) || $c < 0 || $c >= count($QS[$q]['o'])) return $g;
-        $t = microtime(true) - (float)$g['openedAt'];
-        if ($t > $LIMIT + 1.5) return $g; // small grace for slow phones
-        if (isset($g['answers'][$q][$pid])) { $res = ['ok' => false, 'error' => 'You already answered.']; return $g; }
-        $g['answers'][$q][$pid] = ['c' => $c, 't' => round(min($t, $LIMIT), 2)];
+    $people = load($FILE);
+    if (!$pid || !isset($people[$pid])) out(['ok' => false, 'error' => 'Check in first to play.'], 400);
+    $res = ['ok' => false, 'error' => 'Time’s up for this one.'];
+    $g = edit($GAMEF, function ($g) use ($pid, $q, $c, $QS, $PAUSE, &$res) {
+        $now = microtime(true);
+        if (($g['phase'] ?? '') !== 'open') { $res['error'] = 'The game is not running.'; return $g; }
+        game_tick($g, $pid, $now);
+        $p = $g['prog'][$pid];
+        if ($p['q'] > $q && isset($g['answers'][$q][$pid]) && (int)$g['answers'][$q][$pid]['c'] >= 0) { $res['error'] = 'You already answered.'; return $g; }
+        if ($p['q'] !== $q || !isset($QS[$q]) || $c < 0 || $c >= count($QS[$q]['o']) || $now < $p['at']) return $g;
+        if (isset($g['answers'][$q][$pid])) { $res['error'] = 'You already answered.'; return $g; }
+        $t = $now - $p['at'];
+        $g['answers'][$q][$pid] = ['c' => $c, 't' => round(min($t, qlim($q)), 2)];
+        $g['prog'][$pid] = ['q' => $q + 1, 'at' => $now + $PAUSE];
         $res = ['ok' => true];
         return $g;
     });
-    out($res, $res['ok'] ? 200 : 400);
+    out($res + ['game' => game_view($g, $pid, $QS, $people, false)], $res['ok'] ? 200 : 400);
 }
 
 if ($action === 'gamectl' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!is_admin()) out(['ok' => false, 'error' => 'Not allowed.'], 403);
     $in = json_decode((string)file_get_contents('php://input'), true) ?: [];
     $op = (string)($in['op'] ?? '');
-    $n = count($QS);
-    edit($GAMEF, function ($g) use ($op, $n) {
-        $q = (int)($g['q'] ?? -1);
-        if ($op === 'start') { $g = ['phase' => 'open', 'q' => 0, 'openedAt' => microtime(true), 'answers' => []]; }
-        elseif ($op === 'reveal' && ($g['phase'] ?? '') === 'open') { $g['phase'] = 'reveal'; }
-        elseif ($op === 'next' && $q + 1 < $n) { $g['phase'] = 'open'; $g['q'] = $q + 1; $g['openedAt'] = microtime(true); }
-        elseif ($op === 'end') { $g['phase'] = 'done'; }
+    edit($GAMEF, function ($g) use ($op) {
+        // 3-second countdown so every phone shows question 1 at the same moment.
+        if ($op === 'start') { $g = ['phase' => 'open', 'startedAt' => microtime(true) + 3, 'answers' => [], 'prog' => []]; }
+        elseif ($op === 'end' && ($g['phase'] ?? '') === 'open') { $g['phase'] = 'done'; $g['endedAt'] = microtime(true); }
         elseif ($op === 'close') { $g['phase'] = 'idle'; }
         return $g;
     });
