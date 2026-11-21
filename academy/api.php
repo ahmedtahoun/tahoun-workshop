@@ -4,7 +4,7 @@ require __DIR__ . '/lib.php';
 
 $LESSONS = ['what-ai-is', 'the-brief', 'thinking-partner', 'upgrade', 'safety'];
 $FINAL = [1, 1, 2, 0, 2]; // right option per final-quiz question (graded here, never trusted from the phone)
-$TYPES = ['launchpad' => 'AI Launchpad waitlist', 'freelance' => 'AI for freelancers', 'business' => 'AI for business owners', 'corporate' => 'Team / corporate training'];
+$TYPES = ['workshop' => 'Next workshop', 'launchpad' => 'AI Launchpad waitlist', 'freelance' => 'AI for freelancers', 'business' => 'AI for business owners', 'corporate' => 'Team / corporate training'];
 
 $action = $_GET['action'] ?? '';
 $in = json_decode((string)file_get_contents('php://input'), true);
@@ -13,6 +13,9 @@ if (!is_array($in)) $in = [];
 function a_public($r) {
     return ['id' => $r['id'], 'name' => $r['name'], 'done' => $r['done'] ?? (object)[], 'cert' => $r['cert'] ?? null, 'token' => a_token($r['id'])];
 }
+
+// The free course is retired: no new sign-ups.
+if (in_array($action, ['join', 'progress', 'final'], true)) a_out(['ok' => false, 'error' => 'The free course has closed. Join the next workshop instead.'], 410);
 
 if ($action === 'join' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($in['website'])) a_out(['ok' => true]); // spam trap
@@ -106,8 +109,9 @@ if ($action === 'lead' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // And reply to the person instantly, so nobody waits wondering.
     if ($email !== '') {
         $next = [
-            'launchpad' => ['You’re on the AI Launchpad waitlist', 'Founding seats are limited to 15 at $199 (then $349). I’ll send you the dates before anyone else.', 'Start the free course meanwhile', ACADEMY_URL . 'course.html?src=waitlist'],
-            'freelance' => ['You’re on the list for AI for freelancers', 'I’ll tell you as soon as the freelancer track opens: outreach, scoping, pricing and delivering AI projects.', 'Start the free course meanwhile', ACADEMY_URL . 'course.html?src=freelance'],
+            'workshop'  => ['You’re on the list for the next workshop', 'I’ll send you the date and place of the next Brief Your AI workshop as soon as it’s set. Seats are limited, so you’ll hear before I post it anywhere.', 'Message me on WhatsApp', m_wa()],
+            'launchpad' => ['You’re on the AI Launchpad waitlist', 'Founding seats are limited to 15 at $199 (then $349). I’ll send you the dates before anyone else.', 'Message me on WhatsApp', m_wa()],
+            'freelance' => ['You’re on the list for AI for freelancers', 'I’ll tell you as soon as the freelancer track opens: outreach, scoping, pricing and delivering AI projects.', 'Message me on WhatsApp', m_wa()],
             'business'  => ['Let’s book your free 20-minute call', 'Tell me two times that suit you, and bring the one task that takes the most time in your business. I’ll tell you honestly what AI can do for it.', 'Pick a time on WhatsApp', m_wa()],
             'corporate' => ['Thanks for asking about team training', 'I’ll reply personally with a short proposal: the format, the topics for your team and the price. If it’s easier to talk first, message me on WhatsApp.', 'Message me on WhatsApp', m_wa()],
         ][$type];

@@ -15,16 +15,16 @@ $date = $cert ? date('j F Y', strtotime($cert['date'])) : '';
 <script src="social.js" defer></script>
 <style>.vc{max-width:720px;margin:0 auto;padding-block:clamp(40px,8vw,90px)}.cert{background:var(--green);color:var(--paper);border-radius:22px;padding:clamp(30px,6vw,56px) 26px;text-align:center;border:3px solid var(--gold);box-shadow:inset 0 0 0 7px var(--green),inset 0 0 0 8px rgba(217,184,106,.6)}.cert .k{font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}.cert .n{font-family:var(--display);font-size:clamp(40px,8vw,64px);margin:16px 0 8px}.cert .s{color:#C9D6CC;font-size:18px}.cert .meta{margin-top:22px;font-size:14px;color:#C9D6CC}.ok{display:inline-block;margin-top:18px;background:#E3F0E7;color:var(--ok);font-weight:700;border-radius:999px;padding:6px 14px;font-size:14px}</style>
 </head><body>
-<header class="top"><div class="wrap"><a class="mark" href="./">Tahoun <span>AI</span> Academy</a><nav><a class="btn" href="course.html">Take the free course</a></nav></div></header>
+<header class="top"><div class="wrap"><a class="mark" href="./">Tahoun <span>AI</span> Academy</a><nav><a class="btn" href="./">Tahoun AI Academy</a></nav></div></header>
 <main class="wrap"><div class="vc">
 <?php if ($cert): ?>
-  <div class="cert"><p class="k">Certificate of completion</p><p class="n"><?= m_h($cert['name']) ?></p><p class="s">completed <b>Brief Your AI</b>, the free practical AI course from Tahoun AI Academy, with <?= (int)$cert['score'] ?>/5 on the final quiz.</p>
+  <div class="cert"><p class="k">Certificate of completion</p><p class="n"><?= m_h($cert['name']) ?></p><p class="s">completed <b>Brief Your AI</b>, a practical AI course from Tahoun AI Academy, with <?= (int)$cert['score'] ?>/5 on the final quiz.</p>
   <p class="meta"><?= m_h($date) ?> · Certificate <?= m_h($c) ?> · Instructor: Ahmed Tahoun</p><p class="meta" style="margin-top:6px">This is not an official or accredited certification.</p></div>
-  <p style="text-align:center"><span class="ok">✓ Verified: issued by Tahoun AI Academy for completing the free course</span></p>
+  <p style="text-align:center"><span class="ok">✓ Verified: issued by Tahoun AI Academy</span></p>
   <p class="soft" style="text-align:center;margin-top:18px">The course covers how AI answers questions, the five-line brief, AI as a thinking partner, the upgrade ladder for a business, and safe use.</p>
 <?php else: ?>
-  <h1>Certificate not found</h1><p class="lead" style="margin-top:14px">Check the code and try again, or take the free course to earn your own.</p>
-  <p style="margin-top:22px"><a class="btn" href="course.html">Take the free course</a></p>
+  <h1>Certificate not found</h1><p class="lead" style="margin-top:14px">Check the code and try again.</p>
+  <p style="margin-top:22px"><a class="btn" href="./">Go to the Academy</a></p>
 <?php endif; ?>
 </div></main>
 <footer><div class="wrap"><span>Tahoun AI Academy · Ahmed Tahoun</span><div class="socrow" data-social aria-label="Social links"></div></div></footer>

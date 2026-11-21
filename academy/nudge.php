@@ -4,6 +4,7 @@
 require_once __DIR__ . '/lib.php';
 
 function a_nudges($limit = 30) {
+    return 0; // The free course is retired: no more course reminders.
     $now = m_now(); $sent = 0;
     $learners = a_load('learners.json');
     $titles = ['what-ai-is' => 'What AI really is', 'the-brief' => 'The brief', 'thinking-partner' => 'Assistant & thinking partner', 'upgrade' => 'Upgrade your business', 'safety' => 'Using it safely'];
