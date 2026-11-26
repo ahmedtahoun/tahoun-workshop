@@ -1,5 +1,5 @@
 // Cloudflare: tahoun.wheretospot.com as the "tahoun" Worker.
-// Build: `npm run build` (makes dist/). Deploy: `npx wrangler deploy`. Push to main → Workers Builds does both.
+// Build: `npm run build` (makes dist/). Deploy: `npx wrangler deploy`. Push to main → GitHub Actions (.github/workflows/deploy.yml) does both.
 // Secrets (never in git), set with `npx wrangler secret put NAME`:
 //   ADMIN_KEY            workshop + academy admin pages and CSV exports (?key=...)
 //   BREVO_API_KEY        workshop and academy emails
