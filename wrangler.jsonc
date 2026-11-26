@@ -11,6 +11,7 @@
   "compatibility_date": "2026-11-01",
   "workers_dev": true,
   "observability": { "enabled": true },
+  "routes": [{ "pattern": "tahoun.wheretospot.com", "custom_domain": true }],
   "assets": {
     "directory": "dist",
     "binding": "ASSETS",
