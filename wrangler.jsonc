@@ -1,0 +1,39 @@
+// Cloudflare: tahoun.wheretospot.com as the "tahoun" Worker.
+// Build: `npm run build` (makes dist/). Deploy: `npx wrangler deploy`. Push to main → Workers Builds does both.
+// Secrets (never in git), set with `npx wrangler secret put NAME`:
+//   ADMIN_KEY            workshop + academy admin pages and CSV exports (?key=...)
+//   BREVO_API_KEY        workshop and academy emails
+//   ELEVENLABS_API_KEY   homepage voice/text agent
+//   TELEGRAM_BOT_TOKEN   homepage lead alerts
+{
+  "name": "tahoun",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "dist",
+    "binding": "ASSETS",
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+  "durable_objects": { "bindings": [{ "name": "STORE", "class_name": "Store" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Store"] }],
+  "triggers": { "crons": ["*/15 * * * *"] },
+  "vars": {
+    "SITE_URL": "https://tahoun.wheretospot.com/workshop/",
+    "ACADEMY_URL": "https://tahoun.wheretospot.com/academy/",
+    "EVENT_DATE": "2026-11-21",
+    "EVENT_NAME": "Brief Your AI · Dahab",
+    "MAIL_FROM": "atahoun@wheretospot.com",
+    "MAIL_FROM_NAME": "Ahmed Tahoun",
+    "CONTACT_WHATSAPP": "201288884313",
+    "CONTACT_LINKEDIN": "https://www.linkedin.com/in/ah-ta",
+    "CONTACT_WEBSITE": "https://tahoun.wheretospot.com/",
+    "ELEVENLABS_AGENT_ID": "agent_3301m6f914g2eyhbe2274dqhpp0b",
+    "TELEGRAM_CHAT_ID": "5770925631",
+    "SESSIONS_PER_IP_PER_DAY": "6",
+    "SESSIONS_PER_DAY": "60",
+    "LEADS_PER_IP_PER_DAY": "10"
+  }
+}

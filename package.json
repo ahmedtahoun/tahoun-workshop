@@ -1,0 +1,14 @@
+{
+  "name": "tahoun-site",
+  "private": true,
+  "description": "tahoun.wheretospot.com: homepage, workshop app and academy, on Cloudflare Workers",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs && wrangler dev",
+    "deploy": "node scripts/build.mjs && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "4.168.0"
+  }
+}

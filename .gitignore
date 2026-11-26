@@ -12,3 +12,9 @@ node_modules/
 
 # Personal coaching notes (not for the public repo)
 coach/
+
+# Cloudflare build output
+dist/
+.wrangler/
+.dev.vars
+academy/config.php

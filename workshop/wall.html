@@ -161,7 +161,7 @@ main h2{font-family:var(--display);font-size:clamp(28px,2.8vw,46px);font-weight:
 (function(){
   var $=function(id){return document.getElementById(id);};
   var key=new URLSearchParams(location.search).get('key')||'';
-  var join=location.origin+location.pathname.replace(/wall\.html$/,'');
+  var join=location.origin+location.pathname.replace(/wall(\.html)?$/,'');
   $('url').textContent=join.replace(/^https?:\/\//,'').replace(/\/$/,'');
   try{ new QRCode($('qr'),{text:join,width:600,height:600,colorDark:'#17322A',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M}); }
   catch(e){ $('qr').textContent='QR unavailable'; }
