@@ -72,10 +72,11 @@ export class Store extends DurableObject {
     }
   }
 
-  // One-time move of the cPanel data files (admin key required). Body: { docName: value, ... }.
+  // One-time move of the cPanel data files. Body: { docName: value, ... }.
   async importData(request, env) {
     const key = new URL(request.url).searchParams.get("key") ?? "";
-    if (!env.ADMIN_KEY || key !== env.ADMIN_KEY || request.method !== "POST") return new Response("Not allowed.", { status: 403 });
+    // IMPORT_KEY is a temporary secret, set only for the move and deleted afterwards.
+    if (!env.IMPORT_KEY || key !== env.IMPORT_KEY || request.method !== "POST") return new Response("Not allowed.", { status: 403 });
     const data = await request.json();
     const done = [];
     for (const [n, v] of Object.entries(data)) {
